@@ -1,0 +1,17 @@
+[Bb]in/
+[Oo]bj/
+
+.idea/
+
+.vs/
+*.suo
+*.user
+
+.DS_Store
+.AppleDouble
+.LSOverride
+
+Thumbs.db
+desktop.ini
+
+*.nupkg
