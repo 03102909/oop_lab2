@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Lab2.Views.ExitDialog"
+        Width="250" Height="130"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Title="Confirmation">
+
+    <StackPanel Margin="10" Spacing="10">
+        <TextBlock Text="Are you sure you want to exit?" />
+
+        <StackPanel Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Spacing="10">
+            <Button x:Name="YesButton" Content="Yes" Width="70" />
+            <Button x:Name="NoButton"  Content="No"  Width="70" />
+        </StackPanel>
+    </StackPanel>
+</Window>

@@ -8,44 +8,55 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
         x:Class="Lab2.Views.MainWindow"
-        Title="Lab2 - Test">
+        Title="Lab2">
 
-    <StackPanel Margin="15" Spacing="10">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
 
-        <Button x:Name="ChooseXmlBtn" Content="Choose XML"/>
+        <StackPanel Margin="15" Spacing="10">
 
-        <ComboBox x:Name="StrategyPicker" SelectedIndex="0">
-            <ComboBoxItem Content="LINQ"/>
-            <ComboBoxItem Content="DOM"/>
-            <ComboBoxItem Content="SAX"/>
-        </ComboBox>
+            <Button x:Name="ChooseXmlBtn" Content="Choose XML"/>
 
-        <ComboBox x:Name="FacultyBox"/>
-        <ComboBox x:Name="DepartmentBox"/>
-        <ComboBox x:Name="DisciplineNameBox"/>
-        <TextBox x:Name="KeywordBox" Watermark="Keyword (ex. student's name)"/>
+            <ComboBox x:Name="StrategyPicker" SelectedIndex="0">
+                <ComboBoxItem Content="LINQ"/>
+                <ComboBoxItem Content="DOM"/>
+                <ComboBoxItem Content="SAX"/>
+            </ComboBox>
 
-        <Button x:Name="SearchBtn" Content="Search" HorizontalAlignment="Stretch"/>
+            <ComboBox x:Name="FacultyBox"/>
+            <ComboBox x:Name="DepartmentBox"/>
+            <ComboBox x:Name="DisciplineNameBox"/>
+            <TextBox x:Name="KeywordBox" Watermark="Keyword (ex. student's name)"/>
 
-        <TextBlock x:Name="StatusText" FontWeight="Bold" Margin="0,5,0,0"/>
-        
-        <Button x:Name="ChooseXslBtn" Content="Choose XSL"/>
-        <Button x:Name="CreateHtmlBtn" Content="Create file for HTML result"/>
-        <Button x:Name="TransformBtn" Content="Transform to HTML" HorizontalAlignment="Stretch"/>
-        
-        <dg:DataGrid x:Name="OutputGrid"
-                     x:DataType="entities:Student" 
-                     Height="300"
-                     IsReadOnly="True"
-                     AutoGenerateColumns="False">
+            <Button x:Name="SearchBtn" Content="Search" HorizontalAlignment="Stretch"/>
             
-            <dg:DataGrid.Columns>
-                <dg:DataGridTextColumn Header="Student's name" Binding="{Binding StudentName}" Width="*"/>
-                <dg:DataGridTextColumn Header="Faculty" Binding="{Binding Faculty}" Width="100"/>
-                <dg:DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="150"/>
-            </dg:DataGrid.Columns>
+            <Separator/>
             
-        </dg:DataGrid>
+            <Button x:Name="ExitBtn" Content="Exit" HorizontalAlignment="Stretch"/>
+            <Button x:Name="ClearBtn" Content="Clear" HorizontalAlignment="Stretch"/>
+            
+            <Separator/>
 
-    </StackPanel>
+            <Button x:Name="ChooseXslBtn" Content="Choose XSL"/>
+            <Button x:Name="CreateHtmlBtn" Content="Create file for HTML result"/>
+            <Button x:Name="TransformBtn" Content="Transform to HTML" HorizontalAlignment="Stretch"/>
+            
+            <Separator/>
+
+            <dg:DataGrid x:Name="OutputGrid"
+                         x:DataType="entities:Student" 
+                         Height="300"
+                         IsReadOnly="True"
+                         AutoGenerateColumns="False">
+                
+                <dg:DataGrid.Columns>
+                    <dg:DataGridTextColumn Header="Student's name" Binding="{Binding StudentName}" Width="*"/>
+                    <dg:DataGridTextColumn Header="Faculty" Binding="{Binding Faculty}" Width="100"/>
+                    <dg:DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="150"/>
+                </dg:DataGrid.Columns>
+                
+            </dg:DataGrid>
+
+        </StackPanel>
+    
+    </ScrollViewer>
 </Window>

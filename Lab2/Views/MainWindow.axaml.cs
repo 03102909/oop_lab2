@@ -31,8 +31,13 @@ namespace Lab2.Views
             ChooseXmlBtn.Click += async (s, e) => await OpenFileBtnClick("xml");
             ChooseXslBtn.Click += async (s, e) => await OpenFileBtnClick("xsl");
             CreateHtmlBtn.Click += SaveHtmlFileBtnClick;
+            
             SearchBtn.Click += SearchBtnClick;
             TransformBtn.Click += OnTransformClick;
+            
+            ClearBtn.Click += ClearBtnClick;
+            ExitBtn.Click += ExitBtnClick;
+            this.Closing += OnWindowClosing;
         }
         
         private void StrategyPickerSelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -60,7 +65,6 @@ namespace Lab2.Views
             if (files.Count > 0)
             {
                 var filePath = files[0].Path.LocalPath;
-                StatusText.Text = $"Chosen: {System.IO.Path.GetFileName(filePath)}";
         
                 if (fileType == "xml")
                 {
@@ -87,7 +91,6 @@ namespace Lab2.Views
             if (file != null)
             {
                 htmlFilePath = file.Path.LocalPath;
-                StatusText.Text = $"HTML will be saved to: {System.IO.Path.GetFileName(htmlFilePath)}";
             }
         }
 
@@ -108,7 +111,7 @@ namespace Lab2.Views
             }
             catch (Exception ex)
             {
-                StatusText.Text = $"Error loading filter options: {ex.Message}";
+                Console.WriteLine($"Error loading filter options: {ex.Message}");
             }
         }
         
@@ -130,8 +133,7 @@ namespace Lab2.Views
         {
             if (string.IsNullOrEmpty(xmlFilePath))
             {
-                StatusText.Text = "Choose XML file first";
-                return;
+                Console.WriteLine("Choose XML file first");
             }
 
             try
@@ -147,11 +149,10 @@ namespace Lab2.Views
                 results = analyzeContext.Search(xmlFilePath, filterOptions);
                 
                 OutputGrid.ItemsSource = results;
-                StatusText.Text = $"Found records: {results.Count}";
             }
             catch (Exception ex)
             {
-                StatusText.Text = $"Error: {ex.Message}";
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
@@ -159,6 +160,36 @@ namespace Lab2.Views
         {
             var transformer = new Transform(); 
             transformer.TransformToHtml(results, xslFilePath, htmlFilePath);
+        }
+        
+        private void ClearBtnClick(object sender, RoutedEventArgs e)
+        {
+            FacultyBox.SelectedIndex = 0;
+            DepartmentBox.SelectedIndex = 0;
+            DisciplineNameBox.SelectedIndex = 0;
+            KeywordBox.Text = string.Empty;
+            
+            OutputGrid.ItemsSource = null;
+            results = null;
+        }
+        
+        private async void OnWindowClosing(object? sender, WindowClosingEventArgs e)
+        {
+            e.Cancel = true;
+
+            var dialog = new ExitDialog();
+            var result = await dialog.ShowDialog<bool>(this);
+
+            if (result)
+            {
+                this.Closing -= OnWindowClosing;
+                this.Close();
+            }
+        }
+        
+        private void ExitBtnClick(object? sender, RoutedEventArgs e)
+        {
+            this.Close();
         }
     }
 }
