@@ -12,115 +12,114 @@ public class SaxAnalyzeStrategy : IAnalyzeStrategy
         var students = new List<Student>();
         Student currentStudent = null;
 
-        using (XmlReader reader = XmlReader.Create(filePath))
+        using (var reader = XmlReader.Create(filePath))
         {
             while (reader.Read())
             {
-                switch (reader.NodeType)
+                if (reader.NodeType == XmlNodeType.Element)
                 {
-                    case XmlNodeType.Element:
-                        if (reader.Name == "Student")
-                        {
-                            if (currentStudent != null && MatchesFilters(currentStudent, filterOptions))
-                            {
-                                students.Add(currentStudent);
-                            }
-                            
-                            currentStudent = new Student
-                            {
-                                StudentName = reader.GetAttribute("StudentName") ?? string.Empty,
-                                Faculty = reader.GetAttribute("Faculty") ?? string.Empty,
-                                Department = reader.GetAttribute("Department") ?? string.Empty,
-                                Disciplines = new List<DisciplineRecord>()
-                            };
-                        }
-                        else if (reader.Name == "DisciplineRecord" && currentStudent != null)
-                        {
-                            var discipline = new DisciplineRecord
-                            {
-                                DisciplineName = reader.GetAttribute("DisciplineName") ?? string.Empty,
-                                Grade = int.TryParse(reader.GetAttribute("Grade"), out int grade) ? grade : 0,
-                                Credits = int.TryParse(reader.GetAttribute("Credits"), out int credits) ? credits : 0
-                            };
-                            currentStudent.Disciplines.Add(discipline);
-                        }
-                        break;
+                    if (reader.Name == "Student")
+                    {
+                        AddStudentIfMatches(students, currentStudent, filterOptions);
+                        currentStudent = ParseStudent(reader);
+                    }
+                    else if (reader.Name == "DisciplineRecord" && currentStudent != null)
+                    {
+                        currentStudent.Disciplines.Add(ParseDiscipline(reader));
+                    }
                 }
             }
             
-            if (currentStudent != null && MatchesFilters(currentStudent, filterOptions))
-            {
-                students.Add(currentStudent);
-            }
+            AddStudentIfMatches(students, currentStudent, filterOptions);
         }
 
         return students;
     }
+    
+    private Student ParseStudent(XmlReader reader)
+    {
+        return new Student
+        {
+            StudentName = reader.GetAttribute("StudentName"),
+            Faculty = reader.GetAttribute("Faculty"),
+            Department = reader.GetAttribute("Department"),
+            Disciplines = new List<DisciplineRecord>()
+        };
+    }
+    
+    private DisciplineRecord ParseDiscipline(XmlReader reader)
+    {
+        return new DisciplineRecord
+        {
+            DisciplineName = reader.GetAttribute("DisciplineName"),
+            Grade = int.TryParse(reader.GetAttribute("Grade"), out var g) ? g : 0,
+            Credits = int.TryParse(reader.GetAttribute("Credits"), out var c) ? c : 0
+        };
+    }
+    
+    private void AddStudentIfMatches(List<Student> students, Student student, FilterOptions filterOptions)
+    {
+        if (student != null && MatchesFilters(student, filterOptions))
+        {
+            students.Add(student);
+        }
+    }
 
     private bool MatchesFilters(Student student, FilterOptions filterOptions)
     {
-        if (!MatchesProperty(student, filterOptions.Faculty, "Faculty"))
-            return false;
-        
-        if (!MatchesProperty(student, filterOptions.Department, "Department"))
-            return false;
-        
-        if (!MatchesProperty(student, filterOptions.DisciplineName, "DisciplineName"))
-            return false;
-        
-        if (!MatchesKeyword(student, filterOptions.Keyword))
-            return false;
-
-        return true;
+        return MatchesProperty(student, filterOptions.Faculty, "Faculty") &&
+               MatchesProperty(student, filterOptions.Department, "Department") &&
+               MatchesProperty(student, filterOptions.DisciplineName, "DisciplineName") &&
+               MatchesKeyword(student, filterOptions.Keyword);
     }
 
     private bool MatchesProperty(Student student, string filterValue, string propertyName)
     {
-        if (string.IsNullOrEmpty(filterValue))
+        if (string.IsNullOrWhiteSpace(filterValue))
             return true;
 
-        switch (propertyName)
+        return propertyName switch
         {
-            case "Faculty":
-                return student.Faculty == filterValue;
+            "Faculty" => student.Faculty?.Equals(filterValue, StringComparison.OrdinalIgnoreCase) == true,
+            "Department" => student.Department?.Equals(filterValue, StringComparison.OrdinalIgnoreCase) == true,
+            "DisciplineName" => HasDiscipline(student, filterValue),
+            _ => true
+        };
+    }
+    
+    private bool HasDiscipline(Student student, string disciplineName)
+    {
+        if (student.Disciplines == null)
+            return false;
             
-            case "Department":
-                return student.Department == filterValue;
-            
-            case "DisciplineName":
-                foreach (var discipline in student.Disciplines)
-                {
-                    if (discipline.DisciplineName == filterValue)
-                        return true;
-                }
-                return false;
-            
-            default:
+        foreach (var d in student.Disciplines)
+        {
+            if (d.DisciplineName?.Equals(disciplineName, StringComparison.OrdinalIgnoreCase) == true)
                 return true;
         }
+        
+        return false;
     }
 
     private bool MatchesKeyword(Student student, string keyword)
     {
-        if (string.IsNullOrEmpty(keyword))
+        if (string.IsNullOrWhiteSpace(keyword))
             return true;
 
-        if (student.StudentName.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            return true;
-        
-        if (student.Faculty.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-            return true;
-        
-        if (student.Department.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+        if (student.StudentName?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true ||
+            student.Faculty?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true ||
+            student.Department?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true)
             return true;
 
-        foreach (var discipline in student.Disciplines)
+        if (student.Disciplines != null)
         {
-            if (discipline.DisciplineName.Contains(keyword, StringComparison.OrdinalIgnoreCase))
-                return true;
-            
-            if (discipline.Grade.ToString().Contains(keyword))
-                return true;
+            foreach (var d in student.Disciplines)
+            {
+                if (d.DisciplineName?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true ||
+                    d.Grade.ToString().Contains(keyword) ||
+                    d.Credits.ToString().Contains(keyword))
+                    return true;
+            }
         }
 
         return false;

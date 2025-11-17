@@ -1,3 +1,5 @@
+using System.IO;
+using System.Xml.Serialization;
 using Lab2.Models.Entities;
 
 namespace Lab2.Models.Analyze;
@@ -10,45 +12,34 @@ public class LinqAnalyzeStrategy : IAnalyzeStrategy
 {
     public List<Student> Search(string filePath, FilterOptions filterOptions) 
     {
-        var xmlDoc = XDocument.Load(filePath);
-        
-        var students = ParseStudentsFromXml(xmlDoc);
-        
+        var students = ParseStudentsFromXml(filePath);
         students = ApplyFilters(students, filterOptions);
-        
         return students.ToList();
     }
     
-    private IEnumerable<Student> ParseStudentsFromXml(XDocument xmlDoc)
+    private IEnumerable<Student> ParseStudentsFromXml(string filePath)
     {
-        return xmlDoc.Descendants("Student")
-            .Select(s => new Student
-            {
-                StudentName = (string)s.Attribute("StudentName"),
-                Faculty = (string)s.Attribute("Faculty"),
-                Department = (string)s.Attribute("Department"),
-                Disciplines = s.Elements("DisciplineRecord")
-                    .Select(d => new DisciplineRecord
-                    {
-                        DisciplineName = (string)d.Attribute("DisciplineName"),
-                        Grade = (int)d.Attribute("Grade"),
-                        Credits = (int)d.Attribute("Credits")
-                    }).ToList()
-            });
+        var serializer = new XmlSerializer(typeof(StudentsRoot));
+        
+        using var fileStream = new FileStream(filePath, FileMode.Open);
+        var root = (StudentsRoot)serializer.Deserialize(fileStream);
+        
+        return root.Students ?? new List<Student>();
     }
     
     private IEnumerable<Student> FilterByProperty(IEnumerable<Student> students, string filterValue, string propertyName)
     {
-        if (string.IsNullOrEmpty(filterValue))
+        if (string.IsNullOrWhiteSpace(filterValue))
             return students;
     
         return students.Where(s =>
         {
             return propertyName switch
             {
-                "Faculty" => s.Faculty == filterValue,
-                "Department" => s.Department == filterValue,
-                "DisciplineName" => s.Disciplines.Any(d => d.DisciplineName == filterValue),
+                "Faculty" => s.Faculty?.Equals(filterValue, StringComparison.OrdinalIgnoreCase) == true,
+                "Department" => s.Department?.Equals(filterValue, StringComparison.OrdinalIgnoreCase) == true,
+                "DisciplineName" => s.Disciplines?.Any(d => 
+                    d.DisciplineName?.Equals(filterValue, StringComparison.OrdinalIgnoreCase) == true) == true,
                 _ => false
             };
         });
@@ -56,17 +47,18 @@ public class LinqAnalyzeStrategy : IAnalyzeStrategy
     
     private IEnumerable<Student> FilterByKeyword(IEnumerable<Student> students, string keyword)
     {
-        if (string.IsNullOrEmpty(keyword))
+        if (string.IsNullOrWhiteSpace(keyword))
             return students;
             
         return students.Where(s =>
-            s.StudentName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-            s.Faculty.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-            s.Department.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-            s.Disciplines.Any(d =>
-                d.DisciplineName.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                d.Grade.ToString().Contains(keyword)
-            )
+            (s.StudentName?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true) ||
+            (s.Faculty?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true) ||
+            (s.Department?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true) ||
+            (s.Disciplines?.Any(d =>
+                (d.DisciplineName?.Contains(keyword, StringComparison.OrdinalIgnoreCase) == true) ||
+                d.Grade.ToString().Contains(keyword) ||
+                d.Credits.ToString().Contains(keyword)
+            ) == true)
         );
     }
     
