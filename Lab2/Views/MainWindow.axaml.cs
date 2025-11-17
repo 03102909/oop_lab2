@@ -19,7 +19,7 @@ namespace Lab2.Views
         private string htmlFilePath;
         
         private AnalyzeContext analyzeContext;
-        private List<Student> results;
+        private List<Student>? results;
 
         public MainWindow()
         {
@@ -133,7 +133,8 @@ namespace Lab2.Views
         {
             if (string.IsNullOrEmpty(xmlFilePath))
             {
-                Console.WriteLine("Choose XML file first");
+                StatusText.Text = "Choose XML file first!";
+                return;
             }
 
             try
@@ -147,19 +148,46 @@ namespace Lab2.Views
                 };
 
                 results = analyzeContext.Search(xmlFilePath, filterOptions);
-                
+        
                 OutputGrid.ItemsSource = results;
+                StatusText.Text = $"Found: {results.Count} students";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                StatusText.Text = $"Error: {ex.Message}";
             }
         }
 
         private void OnTransformClick(object sender, RoutedEventArgs e)
         {
-            var transformer = new Transform(); 
-            transformer.TransformToHtml(results, xslFilePath, htmlFilePath);
+            if (results == null || results.Count == 0)
+            {
+                StatusText.Text = "No results to transform";
+                return;
+            }
+    
+            if (string.IsNullOrEmpty(xslFilePath))
+            {
+                StatusText.Text = "Choose XSL file first";
+                return;
+            }
+    
+            if (string.IsNullOrEmpty(htmlFilePath))
+            {
+                StatusText.Text = "Create HTML output file first";
+                return;
+            }
+
+            try
+            {
+                var transformer = new Transform(); 
+                transformer.TransformToHtml(results, xslFilePath, htmlFilePath);
+                StatusText.Text = $"HTML created: {System.IO.Path.GetFileName(htmlFilePath)}";
+            }
+            catch (Exception ex)
+            {
+                StatusText.Text = $"Transform error: {ex.Message}";
+            }
         }
         
         private void ClearBtnClick(object sender, RoutedEventArgs e)

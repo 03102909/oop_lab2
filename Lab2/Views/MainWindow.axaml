@@ -22,10 +22,25 @@
                 <ComboBoxItem Content="SAX"/>
             </ComboBox>
 
-            <ComboBox x:Name="FacultyBox"/>
-            <ComboBox x:Name="DepartmentBox"/>
-            <ComboBox x:Name="DisciplineNameBox"/>
-            <TextBox x:Name="KeywordBox" Watermark="Keyword (ex. student's name)"/>
+            <StackPanel Spacing="5">
+                <TextBlock Text="Faculty:" FontWeight="Bold"/>
+                <ComboBox x:Name="FacultyBox"/>
+            </StackPanel>
+    
+            <StackPanel Spacing="5">
+                <TextBlock Text="Department:" FontWeight="Bold"/>
+                <ComboBox x:Name="DepartmentBox"/>
+            </StackPanel>
+    
+            <StackPanel Spacing="5">
+                <TextBlock Text="Discipline:" FontWeight="Bold"/>
+                <ComboBox x:Name="DisciplineNameBox"/>
+            </StackPanel>
+    
+            <StackPanel Spacing="5">
+                <TextBlock Text="Keyword:" FontWeight="Bold"/>
+                <TextBox x:Name="KeywordBox" Watermark="ex. student's name"/>
+            </StackPanel>
 
             <Button x:Name="SearchBtn" Content="Search" HorizontalAlignment="Stretch"/>
             
@@ -41,19 +56,23 @@
             <Button x:Name="TransformBtn" Content="Transform to HTML" HorizontalAlignment="Stretch"/>
             
             <Separator/>
+            
+            <TextBlock x:Name="StatusText"
+                       Margin="4 8 4 0"/>
 
             <dg:DataGrid x:Name="OutputGrid"
                          x:DataType="entities:Student" 
                          Height="300"
                          IsReadOnly="True"
                          AutoGenerateColumns="False">
-                
+    
                 <dg:DataGrid.Columns>
-                    <dg:DataGridTextColumn Header="Student's name" Binding="{Binding StudentName}" Width="*"/>
+                    <dg:DataGridTextColumn Header="Student's name" Binding="{Binding StudentName}" Width="150"/>
                     <dg:DataGridTextColumn Header="Faculty" Binding="{Binding Faculty}" Width="100"/>
                     <dg:DataGridTextColumn Header="Department" Binding="{Binding Department}" Width="150"/>
+                    <dg:DataGridTextColumn Header="Disciplines" Binding="{Binding DisciplinesFormatted}" Width="*"/>
                 </dg:DataGrid.Columns>
-                
+    
             </dg:DataGrid>
 
         </StackPanel>
